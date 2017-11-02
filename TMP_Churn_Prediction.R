@@ -28,6 +28,13 @@ ggplot(CV_data, aes(Total.night.minutes, color=Churn)) +
   geom_density()
 
 
+kruskal.test(Total.night.minutes ~ Churn, data = CV_data)
 
+P_values=apply(CV_data[,-20], 2, function(x) kruskal.test(x,CV_data[,20])$p.value)
+
+windows()
+barplot(P_values[P_values<=.001])
+dev.off()
+               
 
 
