@@ -30,7 +30,8 @@ ggplot(CV_data, aes(Total.night.minutes, color=Churn)) +
 
 kruskal.test(Total.night.minutes ~ Churn, data = CV_data)
 
-P_values=apply(CV_data[,-20], 2, function(x) kruskal.test(x,CV_data[,20])$p.value)
+### CHECK 14!!! NOT 20 !!!
+P_values=apply(CV_data[,-14], 2, function(x) kruskal.test(x,CV_data[,14])$p.value)
 
 windows()
 barplot(P_values[P_values<=.001])
