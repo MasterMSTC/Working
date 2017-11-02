@@ -6,4 +6,28 @@ summary(CV_data$State)
 windows()
 barplot(summary(CV_data$State))
 
+windows()
+pairs(CV_data)
+dev.off()
+
+# data.table for SET
+library(data.table)
+set(CV_data, j = c('State',
+                   'Area.code',
+                   'Total.day.charge',
+                   'Total.eve.charge',
+                   'Total.night.charge',
+                   'Total.intl.charge') , value = NULL)
+
+windows()
+plot(CV_data$Churn,CV_data$Customer.service.calls)
+
+library(ggplot2)
+ggplot(CV_data, aes(Total.night.minutes, color=Churn)) +
+  geom_histogram(position="identity", binwidth=3, aes(y=..density.., fill=Churn),  alpha=0.5) +
+  geom_density()
+
+
+
+
 
