@@ -85,7 +85,7 @@ glm.probs =predict (glm.fit ,final_test_data , type="response")
 
 
 glm.pred=rep("False" ,667)
-glm.pred[glm.probs >.5]="True"
+glm.pred[glm.probs >.2]="True"
 
 table(glm.pred ,final_test_data$Churn)
 
@@ -122,6 +122,74 @@ plot(unlist(perf@alpha.values),unlist(perf@x.values),
      xlab=perf@alpha.name,ylab=perf@x.name,col='red')
 lines(unlist(perf@alpha.values),unlist(perf@y.values),
       xlab=perf@alpha.name,ylab=perf@y.name)
+
+
+
+
+## precision/recall curve (x-axis: recall, y-axis: precision)
+windows()
+perf1 <- performance(pred, "prec", "rec")
+plot(perf1)
+dev.off()
+
+performance(pred, "auc")@y.values[[1]]
+
+library(caret)
+
+precision <- posPredValue(as.factor(glm.pred),
+                          final_test_data$Chur, positive="True")
+recall <- sensitivity(as.factor(glm.pred),
+                      final_test_data$Chur, positive="True")
+
+F1 <- (2 * precision * recall) / (precision + recall)
+
+## SOME POSSIBLE STUDIES
+
+# use only some features...
+
+# TRY LDA  lda is part of MASS library
+
+library (MASS)
+lda.fit=lda(Churn ∼ . ,data=CV_data)
+lda.fit
+
+windows()
+plot(lda.fit)
+dev.off()
+
+lda.predict=predict (lda.fit , final_test_data)
+
+
+# class: contains LDA’s predictions 
+# posterior: is a matrix whose kth column contains the
+# posterior probability that the corresponding
+# observation belongs to the kth class 
+# x :  contains the linear discriminants
+
+names(lda.predict)
+
+
+lda.pred=rep("False" ,667)
+lda.pred[lda.predict$posterior[,2] >.5]="True"
+
+table(lda.pred ,final_test_data$Churn)
+
+mean(lda.pred==final_test_data$Churn)
+
+# Quadratic Discriminant Analysis
+
+qda.fit=qda(Churn ∼ . ,data=CV_data)
+
+qda.predict=predict (qda.fit , final_test_data)
+
+qda.pred=rep("False" ,667)
+qda.pred[qda.predict$posterior[,2] >.5]="True"
+
+table(qda.pred ,final_test_data$Churn)
+
+mean(qda.pred==final_test_data$Churn)
+
+
 
 
 
