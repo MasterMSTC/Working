@@ -1,5 +1,21 @@
+# ORANGE Churn prediction
+
+# LET's Start predicting Churn using Logistic Regression
+
 file_train ='C:\\MSTC_BD\\NEW_2017_18\\CHURN\\DATA\\churn-bigml-80.csv'
 CV_data <- read.csv(file_train, header=TRUE, sep=",")
+
+file_test =
+  'C:\\MSTC_BD\\NEW_2017_18\\CHURN\\DATA\\churn-bigml-20.csv'
+final_test_data <- read.csv(file_test, header=TRUE, sep=",")
+
+## As lineary correlated remove
+#'Total.day.charge',
+#'Total.eve.charge',
+#'Total.night.charge',
+#'Total.intl.charge'
+
+# And also State and Area.code as categorical...
 
 # data.table for SET
 library(data.table)
@@ -11,6 +27,19 @@ set(CV_data, j = c('State',
                    'Total.intl.charge') , value = NULL)
 
 
+# change categorical to numerical
+# ... discuss contrasts()
+
+CV_data$International.plan =
+  as.numeric(CV_data$International.plan)-1
+CV_data$Voice.mail.plan =
+  as.numeric(CV_data$Voice.mail.plan)-1
+
+
+attach(CV_data)
+
+
+
 # Logistic Regression
 glm.fit=glm(Churn ~ . ,data=CV_data,family=binomial)
 summary(glm.fit)
@@ -18,3 +47,81 @@ summary(glm.fit)
 # Apply Logist Regression Model on Training Data
 # type ="response" gives probabilities
 glm.probs=predict(glm.fit,type="response")
+glm.probs[15:20]
+Churn[15:20]
+
+
+# Basic Confusion matrix en MCE with Threshold 0.5
+glm.pred=rep ("False" ,2666)
+glm.pred[glm.probs >.5]="True"
+
+table(glm.pred ,Churn)
+mean(glm.pred==Churn)
+
+# WHAT IF all predictions == False (majority class)
+glm.pred=rep ("False" ,2666)
+table(glm.pred ,Churn)
+mean(glm.pred==Churn)
+
+
+# TEST ERROR
+# first prepare test data in a similar way
+# as training data 
+
+# Drop categorical & highly correlated data
+set(final_test_data, j = c('State',
+                   'Area.code',
+                   'Total.day.charge',
+                   'Total.eve.charge',
+                   'Total.night.charge',
+                   'Total.intl.charge') , value = NULL)
+
+final_test_data$International.plan =
+  as.numeric(final_test_data$International.plan)-1
+final_test_data$Voice.mail.plan =
+  as.numeric(final_test_data$Voice.mail.plan)-1
+
+glm.probs =predict (glm.fit ,final_test_data , type="response")
+
+
+glm.pred=rep("False" ,667)
+glm.pred[glm.probs >.5]="True"
+
+table(glm.pred ,final_test_data$Churn)
+
+mean(glm.pred==final_test_data$Churn)
+
+# WHAT IF all predictions == False (majority class)
+glm.pred=rep ("False" ,667)
+table(glm.pred ,final_test_data$Churn)
+mean(glm.pred==final_test_data$Churn)
+
+## DISCUSS unbalanced data !!!
+
+# change threshold , plot ROC, DET Curves
+
+library(ROCR)
+pred <- prediction(glm.probs, final_test_data$Churn)
+perf <- performance(pred,"tpr","fpr")
+
+windows()
+plot(perf)
+dev.off()
+
+# Let's analyze error as in DET curves
+perf <- performance(pred,"miss","fpr")
+perf@x.name
+perf@y.name
+perf@alpha.name
+
+windows()
+plot(perf)
+dev.off()
+
+plot(unlist(perf@alpha.values),unlist(perf@x.values),
+     xlab=perf@alpha.name,ylab=perf@x.name,col='red')
+lines(unlist(perf@alpha.values),unlist(perf@y.values),
+      xlab=perf@alpha.name,ylab=perf@y.name)
+
+
+
